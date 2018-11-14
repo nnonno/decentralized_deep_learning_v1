@@ -25,10 +25,12 @@ $ bash runChain.sh
 $ bash runDapp.sh
 ```
 ## testbed simulation
+```
 pi@ethpinode1:~/nodeAI $ ./pynode.py p
 pi@ethpinode2:~/nodeAI $ ./pynode.py c1
 pi@ethpinode3:~/nodeAI $ ./pynode.py c2
 nvidia@tegra-ubuntu:~/opt/nodeAI$ ./pynode.py v
+```
 ## Todo
 
 
