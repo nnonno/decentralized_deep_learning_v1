@@ -36,80 +36,100 @@ def deployContract(contract_interface, web3_instance):
 async def handle_event_publisher_initialize(myWeb3, myContract, poll_interval):
 
     event_filter = myContract.events.Message.createFilter(fromBlock="latest")
+    events_holder = set()
     while True:
         for event in event_filter.get_new_entries():
-            handle_event_publisher(myWeb3, myContract, event)
+            events_holder = handle_event_publisher(myWeb3, myContract, event, events_holder)
         await asyncio.sleep(poll_interval)
 
-def handle_event_publisher(myWeb3, myContract, event):
+def handle_event_publisher(myWeb3, myContract, event, events_holder):
 
     if str(event["args"]["topic"]) == "complete":
-        print(time.asctime(),": Account ",myWeb3.eth.defaultAccount," received a new message (complete)");
-        print("time: ",str(event["args"]["_time"]),"  Topic: ",str(event["args"]["topic"]));
-        print("Final accepted models: \n" , str(event["args"]["hash"]));
+        if (event["args"]["_time"],event["args"]["topic"]) not in events_holder:
+            events_holder.add((event["args"]["_time"],event["args"]["topic"]))
+            print(time.asctime(),": Account ",myWeb3.eth.defaultAccount," received a new message (complete)");
+            print("time: ",str(event["args"]["_time"]),"  Topic: ",str(event["args"]["topic"]));
+            print("Final accepted models: \n" , str(event["args"]["hash"]));
+            return events_holder
+        else:
+            return events_holder
     else:
         print(time.asctime(),": bypass unrelated message")
+        return events_holder
     # and whatever
 
 async def handle_event_contributor1_initialize(myWeb3, myContract, poll_interval):
 
     event_filter = myContract.events.Message.createFilter(fromBlock="latest")
+    events_holder = set()
     while True:
         for event in event_filter.get_new_entries():
-            handle_event_contributor1(myWeb3, myContract, event)
+            events_holder = handle_event_contributor1(myWeb3, myContract, event, events_holder)
         await asyncio.sleep(poll_interval)
 
-def handle_event_contributor1(myWeb3, myContract, event):
+def handle_event_contributor1(myWeb3, myContract, event, events_holder):
 
     if str(event["args"]["topic"]) == "train":
-        print(time.asctime(),": Account ",myWeb3.eth.defaultAccount," received a new message (train)");
-        print("time: ",str(event["args"]["_time"]),"  Topic: ",str(event["args"]["topic"]));
+        if (event["args"]["_time"],event["args"]["topic"]) not in events_holder:
+            events_holder.add((event["args"]["_time"],event["args"]["topic"]))
+            print(time.asctime(),": Account ",myWeb3.eth.defaultAccount," received a new message (train)");
+            print("time: ",str(event["args"]["_time"]),"  Topic: ",str(event["args"]["topic"]));
 
-        print(time.asctime(),": start training")
-        sys.path.insert(0, "/home/pi/IPFS_TEST/Computing_contributor1/")
-        from con1_m import con1
-        result = con1(float(event["args"]["hash"]))
-        print(time.asctime(),": complete training")
+            print(time.asctime(),": start training")
+            sys.path.insert(0, "/home/pi/IPFS_TEST/Computing_contributor1/")
+            from con1_m import con1
+            result = con1(float(event["args"]["hash"]))
+            print(time.asctime(),": complete training")
 
-        print(time.asctime(),": Publishing training result: ",result[0])
-        tx_hash = myContract.functions.sendMessage(myWeb3.eth.defaultAccount, 'verify', ",".join(str(i) for i in result)).transact()
-        # Wait for transaction to be mined...
-        tx_receipt = myWeb3.eth.waitForTransactionReceipt(tx_hash)
-        print(time.asctime(),": Successfully post training result.")
-
+            print(time.asctime(),": Publishing training result: ",result[0])
+            tx_hash = myContract.functions.sendMessage(myWeb3.eth.defaultAccount, 'verify', ",".join(str(i) for i in result)).transact()
+            # Wait for transaction to be mined...
+            tx_receipt = myWeb3.eth.waitForTransactionReceipt(tx_hash)
+            print(time.asctime(),": Successfully post training result.")
+            return events_holder
+        else:
+            return events_holder
 
     else:
         print(time.asctime(),": bypass unrelated message")
+        return events_holder
     # and whatever
 
 async def handle_event_contributor2_initialize(myWeb3, myContract, poll_interval):
 
     event_filter = myContract.events.Message.createFilter(fromBlock="latest")
+    events_holder = set()
     while True:
         for event in event_filter.get_new_entries():
-            handle_event_contributor2(myWeb3, myContract, event)
+            events_holder = handle_event_contributor2(myWeb3, myContract, event, events_holder)
         await asyncio.sleep(poll_interval)
 
-def handle_event_contributor2(myWeb3, myContract, event):
+def handle_event_contributor2(myWeb3, myContract, event, events_holder):
 
     if str(event["args"]["topic"]) == "train":
-        print(time.asctime(),": Account ",myWeb3.eth.defaultAccount," received a new message (train)");
-        print("time: ",str(event["args"]["_time"]),"  Topic: ",str(event["args"]["topic"]));
+        if (event["args"]["_time"],event["args"]["topic"]) not in events_holder:
+            events_holder.add((event["args"]["_time"],event["args"]["topic"]))
+            print(time.asctime(),": Account ",myWeb3.eth.defaultAccount," received a new message (train)");
+            print("time: ",str(event["args"]["_time"]),"  Topic: ",str(event["args"]["topic"]));
 
-        print(time.asctime(),": start training")
-        sys.path.insert(0, "/home/pi/IPFS_TEST/Computing_contributor2/")
-        from con2_m import con2
-        result = con2(float(event["args"]["hash"]))
-        print(time.asctime(),": complete training")
+            print(time.asctime(),": start training")
+            sys.path.insert(0, "/home/pi/IPFS_TEST/Computing_contributor2/")
+            from con2_m import con2
+            result = con2(float(event["args"]["hash"]))
+            print(time.asctime(),": complete training")
 
-        print(time.asctime(),": Publishing training result: ",result[0])
-        tx_hash = myContract.functions.sendMessage(myWeb3.eth.defaultAccount, 'verify', ",".join(str(i) for i in result)).transact()
-        # Wait for transaction to be mined...
-        tx_receipt = myWeb3.eth.waitForTransactionReceipt(tx_hash)
-        print(time.asctime(),": Successfully post training result.")
+            print(time.asctime(),": Publishing training result: ",result[0])
+            tx_hash = myContract.functions.sendMessage(myWeb3.eth.defaultAccount, 'verify', ",".join(str(i) for i in result)).transact()
+            # Wait for transaction to be mined...
+            tx_receipt = myWeb3.eth.waitForTransactionReceipt(tx_hash)
+            print(time.asctime(),": Successfully post training result.")
+            return events_holder
+        else:
+            return events_holder
 
     else:
         print(time.asctime(),": bypass unrelated message")
+        return events_holder
     # and whatever
 
 async def handle_event_verifier_initialize(myWeb3, myContract, poll_interval):
@@ -136,7 +156,6 @@ def handle_event_verifier(myWeb3, myContract, event, models_holder):
                 os.chdir("/home/nvidia/opt/IPFS_TEST/Verification_contributor/")
                 result = verifier(list(models_holder))
                 print(time.asctime(),": complete verification")
-                models_holder = set()
 
                 print(time.asctime(),": Publishing verification result: ",result)
                 tx_hash = myContract.functions.sendMessage(myWeb3.eth.defaultAccount, 'complete', ",".join(str(i) for i in result)).transact()
